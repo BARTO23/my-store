@@ -1,13 +1,12 @@
 const { faker } = require("@faker-js/faker");
 
 class ProductsService {
-
   constructor() {
     this.products = [];
     this.generate();
   }
 
-  generate() { 
+  async generate() {
     const limit = 100;
 
     for (let index = 0; index < limit; index++) {
@@ -20,31 +19,48 @@ class ProductsService {
     }
   }
 
-  create(data){
+  async create(data) {
     const newProduct = {
       id: faker.string.uuid(),
-      ...data // la demas informacion la da el cliente, con el ... concatenamos la informacion que el cliente nos da con la que nosotros generamos (id)
-    }
+      ...data, // la demas informacion la da el cliente, con el ... concatenamos la informacion que el cliente nos da con la que nosotros generamos (id)
+    };
     this.products.push(newProduct);
     return newProduct;
   }
 
-  find(){ 
-    return this.products
+  find() {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve(this.products);
+      }, 5000);
+    })
   }
 
-  findOne(id){
-    return this.products.find(item => item.id === id);
+  async findOne(id) {
+    return this.products.find((item) => item.id === id);
   }
 
-  update(){
-
+  async update(id, changes) {
+    const index = this.products.findIndex(item => item.id === id);
+    if (index === -1) {
+      throw new Error('product not found');
+    }
+    const product = this.products[index];
+    this.products[index] = {
+      ...product,
+      ...changes
+    };
+    return this.products[index];
   }
 
-  delete(){
-
+  async delete(id) {
+    const index = this.products.findIndex((item) => item.id === id);
+    if (index === -1) {
+      throw new Error("Product not found");
+    }
+    this.products.splice(index, 1); // Elimina un elemento del array en la posicion index y solo un elemento
+    return { id };
   }
-
 }
 
 module.exports = ProductsService;

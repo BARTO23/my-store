@@ -3,7 +3,7 @@ const routerApi = require("./routes");
 const app = express();
 const port = 3000;
 
-
+const { logErrors, errorHandler } = require("./middlewares/error.handler");
 
 app.use(express.json());
 
@@ -15,6 +15,11 @@ app.get("/nueva-ruta", (req, res) => {
   res.send("Hola soy un nuevo endpoint");
 });
 
+routerApi(app);
+// Utilizamos los middleware. Siempre deben ir después del routing:
+app.use(logErrors);
+app.use(errorHandler);
+
 app.get("/home", (req, res) => {
   console.log("aqui encontraras nuestra pagian principal");
 });
@@ -22,5 +27,3 @@ app.get("/home", (req, res) => {
 app.listen(port, () => {
   console.log("My port: " + port);
 });
-
-routerApi(app);
