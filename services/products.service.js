@@ -1,49 +1,58 @@
-const { faker } = require("@faker-js/faker");
+const faker = require('faker');
+const boom = require('@hapi/boom');
 
 class ProductsService {
-  constructor() {
+
+  constructor(){
     this.products = [];
     this.generate();
   }
 
-  async generate() {
+  generate() {
     const limit = 100;
-
     for (let index = 0; index < limit; index++) {
       this.products.push({
-        id: faker.string.uuid(),
+        id: faker.datatype.uuid(),
         name: faker.commerce.productName(),
         price: parseInt(faker.commerce.price(), 10),
-        image: faker.image.url(),
+        image: faker.image.imageUrl(),
+        isBlock: faker.datatype.boolean(),
       });
     }
   }
 
   async create(data) {
     const newProduct = {
-      id: faker.string.uuid(),
-      ...data, // la demas informacion la da el cliente, con el ... concatenamos la informacion que el cliente nos da con la que nosotros generamos (id)
-    };
+      id: faker.datatype.uuid(),
+      ...data
+    }
     this.products.push(newProduct);
     return newProduct;
   }
 
   find() {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       setTimeout(() => {
         resolve(this.products);
-      }, 5000);
+      }, 3000);
     })
   }
 
   async findOne(id) {
-    return this.products.find((item) => item.id === id);
+    const product = this.products.find(item => item.id === id);
+    if (!product) {
+      throw boom.notFound('product not found');
+    }
+    if (product.isBlock) {
+      throw boom.conflict('product is block');
+    }
+    return product;
   }
 
   async update(id, changes) {
     const index = this.products.findIndex(item => item.id === id);
     if (index === -1) {
-      throw new Error('product not found');
+      throw boom.notFound('product not found');
     }
     const product = this.products[index];
     this.products[index] = {
@@ -54,13 +63,14 @@ class ProductsService {
   }
 
   async delete(id) {
-    const index = this.products.findIndex((item) => item.id === id);
+    const index = this.products.findIndex(item => item.id === id);
     if (index === -1) {
-      throw new Error("Product not found");
+      throw boom.notFound('product not found');
     }
-    this.products.splice(index, 1); // Elimina un elemento del array en la posicion index y solo un elemento
+    this.products.splice(index, 1);
     return { id };
   }
+
 }
 
 module.exports = ProductsService;
